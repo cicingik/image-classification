@@ -4,6 +4,7 @@ import logging.config
 import tensorflow as tf
 import os
 import colorama
+from .config import SUMMARY_DICT
 
 __logger = None
 
@@ -79,13 +80,12 @@ def configure_logger(filepath=None, level=logging.DEBUG):
 
 
 class Logger:
-    def __init__(self, sess, config):
+    def __init__(self, sess):
         self.sess = sess
-        self.config = config
         self.summary_placeholders = {}
         self.summary_ops = {}
-        self.train_summary_writer = tf.summary.FileWriter(os.path.join(self.config.summary_dir, "train"))
-        self.test_summary_writer = tf.summary.FileWriter(os.path.join(self.config.summary_dir, "test"))
+        self.train_summary_writer = tf.summary.FileWriter(os.path.join(SUMMARY_DICT, "train"))
+        self.test_summary_writer = tf.summary.FileWriter(os.path.join(SUMMARY_DICT, "test"))
 
     def summarize(self, step, summarizer="train", scope="", summaries_dict=None):
 

@@ -2,18 +2,18 @@
 from abc import ABC
 import numpy as np
 from .base import BaseTrain
+from cnf.config import SKIP_STEP, ITERATE_PER_EPOCH, NUM_ITERATE_TEST
 
 
 class Trainer(BaseTrain, ABC):
-    def __init__(self, sess, model, config, logger, data):
-        super().__init__(sess, model, config, logger, data)
-        self.config = config
+    def __init__(self, sess, model, logger, data):
+        super().__init__(sess, model, logger, data)
 
     def train_epoch(self, cur_epoch):
         losses = []
         accs = []
 
-        for i in range(self.config.iterate_per_epoch):
+        for i in range(ITERATE_PER_EPOCH):
             loss, acc = self.train_step()
             losses.append(loss)
             accs.append(acc)
@@ -23,7 +23,7 @@ class Trainer(BaseTrain, ABC):
         loss = np.mean(losses)
         acc = np.mean(accs)
 
-        eval_acc, eval_loss = self.eval(cur_epoch, cur_it)
+        eval_acc, eval_loss = self.eval()
 
         summaries_dict = {
             'loss': loss,
@@ -52,16 +52,16 @@ class Trainer(BaseTrain, ABC):
              ],
             feed_dict=feed_dict)
 
-        if (step + 1) % self.config.skip_step == 0:
+        if (step + 1) % SKIP_STEP == 0:
             print('Loss at step {0}: {1}'.format(step, loss))
 
         return loss, acc
 
-    def eval(self, cur_epoch, cur_it):
+    def eval(self):
         losses = []
         accs = []
 
-        for i in range(self.config.num_iter_per_eval):
+        for i in range(NUM_ITERATE_TEST):
             acc, loss = self.eval_step()
             losses.append(loss)
             accs.append(acc)

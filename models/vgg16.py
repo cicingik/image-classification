@@ -2,16 +2,15 @@ from abc import ABC
 import numpy as np
 import tensorflow as tf
 from .base import BaseModel, is_retrain
+from cnf.config import CLASS_NUM, IMAGE_SIZE, IMAGE_CHANNEL, LEARNING_RATE, MAX_TO_KEP, WEIGHTS
 
 
 class VGG16(BaseModel, ABC):
-    def __init__(self, config, trainable=True, retrain='complete'):
-        super(VGG16, self).__init__(config)
-        self.config = config
-        self.data = np.load(self.config.weights, encoding='latin1').item()
+    def __init__(self, trainable=True, retrain='complete'):
+        super(VGG16, self).__init__()
+        self.data_dict = np.load(WEIGHTS, encoding='latin1').item()
         self.trainable = trainable
         self.retrain = retrain
-        self.classes = self.config.class_num
         self.logits = None
         self.logits_argmax = None
         self.loss = None
@@ -22,14 +21,20 @@ class VGG16(BaseModel, ABC):
         self.init_saver()
 
     def build_model(self):
+        self.global_step_tensor = tf.Variable(0, trainable=False, name='global_step')
+        self.global_step_inc = self.global_step_tensor.assign(self.global_step_tensor)
+
+        self.global_epoch_tensor = tf.Variable(0, trainable=False, name='global_epoch')
+        self.global_epoch_inc = self.global_epoch_tensor.assign(self.global_epoch_tensor + 1)
+
         # Make input variable with tf.placeholder
         with tf.name_scope('input'):
             self.x = tf.placeholder(tf.float32,
-                               shape=[None, self.config.image_shape, self.config.image_shape, self.config.image_channels],
-                               name='x')
+                                    shape=[None, IMAGE_SIZE, IMAGE_SIZE, IMAGE_CHANNEL],
+                                    name='x')
             self.y = tf.placeholder(tf.int32,
-                               shape=[None],
-                               name='y')
+                                    shape=[None],
+                                    name='y')
             tf.add_to_collection('input', self.x)
             tf.add_to_collection('input', self.y)
 
@@ -69,7 +74,7 @@ class VGG16(BaseModel, ABC):
 
             fc7 = self.fully_connected(fc6, out_dim=512, scope_name='fc7', activation=tf.nn.relu)
 
-            self.logits = self.fully_connected(fc7, out_dim=self.classes, scope_name='logits', activation=False)
+            self.logits = self.fully_connected(fc7, out_dim=int(CLASS_NUM), scope_name='logits', activation=False)
 
             tf.add_to_collection('logits', self.logits)
 
@@ -81,7 +86,7 @@ class VGG16(BaseModel, ABC):
                 self.loss = tf.reduce_mean(entropy, name='loss')
 
             with tf.name_scope('train_step'):
-                self.optimizer = tf.train.GradientDescentOptimizer(self.config.learning_rate)
+                self.optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE)
 
                 update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 
@@ -102,7 +107,7 @@ class VGG16(BaseModel, ABC):
         out_channels = filters
         rt_status = is_retrain(self.retrain, name)
 
-        init_value_in = tf.truncated_normal(shape=[k_size, k_size, in_channels, out_channels], stddev=0.001)
+        init_value_in = tf.truncated_normal(shape=[k_size, k_size, int(in_channels), out_channels], stddev=0.001)
         init_value_out = tf.truncated_normal([out_channels], stddev=0.001)
 
         kernel = self.get_var(init_value_in, name, 0, name + "_filters", retrain=rt_status)
@@ -116,8 +121,8 @@ class VGG16(BaseModel, ABC):
         return f_conv
 
     def get_var(self, initial_value, name, idx, var_name, retrain=True):
-        if self.data is not None and name in self.data:
-            value = self.data[name][idx]
+        if self.data_dict is not None and name in self.data_dict:
+            value = self.data_dict[name][idx]
         else:
             value = initial_value
 
@@ -149,4 +154,4 @@ class VGG16(BaseModel, ABC):
             return out
 
     def init_saver(self):
-        self.saver = tf.train.Saver(max_to_keep=self.config.max_to_keep, save_relative_paths=True)
+        self.saver = tf.train.Saver(max_to_keep=MAX_TO_KEP, save_relative_paths=True)
