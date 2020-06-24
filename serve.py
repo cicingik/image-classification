@@ -29,7 +29,7 @@ if __name__ == '__main__':
         saver = tf.train.import_meta_graph(checkpoint + '.meta')
         saver.restore(sess, checkpoint)
         graph = tf.get_default_graph()
-        inputs = graph.get_tensor_by_name('input/x:0')
+        inputs = graph.get_tensor_by_name('inputs/x:0')
         prediction = graph.get_tensor_by_name('accuracy/prediction:0')
 
         builder = tf.saved_model.builder.SavedModelBuilder(SERVE_PATH)
