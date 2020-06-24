@@ -10,7 +10,7 @@ import os
 def main(model):
     data = DataLoader()
     model = Models(data.train_set, data.valuation_set, model_type=model)
-    model.train()
+    model.train
 
 
 if __name__ == '__main__':
