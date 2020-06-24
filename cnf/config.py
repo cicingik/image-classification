@@ -15,9 +15,10 @@ TRAIN_VERSION = 'version-1'
 # Config for training
 IMAGE_SIZE = 224        # Image size for input training
 IMAGE_CHANNEL = 3       # Image channel
-BATCH_SIZE = 42         # How much image will train in a batch
+BATCH_SIZE = 100         # How much image will train in a batch
 EPOCH_NUM = 10          # Total epoch for training
 TEST_SIZE = 0.20        # Composition train and test data
 LEARNING_RATE = 1e-4    # Learning rate
 DECAY = 1e-6            # Still don't know
+CLASS_NUM = 42
 
