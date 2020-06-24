@@ -1,8 +1,24 @@
 # -*- coding: utf-8 -*-
 from data_loader.data_loader import DataLoader
-from models.vgg16 import Models
+from models.models import Models
+from cnf.argument import options
+import colorama
+import sys
+import os
 
 
-data = DataLoader()
-model = Models(data.train_set, data.len_train_set, data.valuation_set, data.len_valuation_set)
-model.train()
+def main(model):
+    data = DataLoader()
+    model = Models(data.train_set, data.valuation_set, model_type=model)
+    model.train()
+
+
+if __name__ == '__main__':
+    p = options()
+    args = p.parse_args()
+
+    if not all([args.model]):
+        p.print_help()
+        sys.exit(2)
+
+    main(args.model)
