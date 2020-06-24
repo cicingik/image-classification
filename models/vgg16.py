@@ -28,18 +28,18 @@ class VGG16(BaseModel, ABC):
         self.global_epoch_inc = self.global_epoch_tensor.assign(self.global_epoch_tensor + 1)
 
         # Make input variable with tf.placeholder
-        with tf.name_scope('input'):
+        with tf.name_scope('inputs') as scope:
             self.x = tf.placeholder(tf.float32,
                                     shape=[None, IMAGE_SIZE, IMAGE_SIZE, IMAGE_CHANNEL],
                                     name='x')
             self.y = tf.placeholder(tf.int32,
                                     shape=[None],
                                     name='y')
-            tf.add_to_collection('input', self.x)
-            tf.add_to_collection('input', self.y)
+            tf.add_to_collection('inputs', self.x)
+            tf.add_to_collection('inputs', self.y)
 
         # Make network based VGG16
-        with tf.name_scope('network'):
+        with tf.name_scope('network') as scope:
             conv1_1 = self.conv_layer(self.x, filters=64, k_size=3, stride=1, padding='SAME', name='conv1_1')
             conv1_2 = self.conv_layer(conv1_1, filters=64, k_size=3, stride=1, padding='SAME', name='conv1_2')
             pool1 = self.maxpool(conv1_2, k_size=2, stride=2, padding='SAME', scope_name='pool1')
@@ -78,14 +78,14 @@ class VGG16(BaseModel, ABC):
 
             tf.add_to_collection('logits', self.logits)
 
-            with tf.name_scope('logits_argmax'):
+            with tf.name_scope('logits_argmax') as scope:
                 self.logits_argmax = tf.argmax(self.logits, axis=1, output_type=tf.int64, name='out_argmax')
 
             with tf.name_scope('loss'):
                 entropy = tf.losses.sparse_softmax_cross_entropy(labels=self.y, logits=self.logits)
                 self.loss = tf.reduce_mean(entropy, name='loss')
 
-            with tf.name_scope('train_step'):
+            with tf.name_scope('train_step') as scope:
                 self.optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE)
 
                 update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -93,7 +93,7 @@ class VGG16(BaseModel, ABC):
                 with tf.control_dependencies(update_ops):
                     self.train_step = self.optimizer.minimize(self.loss, global_step=self.global_step_tensor)
 
-            with tf.name_scope('accuracy'):
+            with tf.name_scope('accuracy') as scope:
                 prediction = tf.nn.softmax(self.logits, name='prediction')
                 correct_prediction = tf.equal(tf.argmax(prediction, axis=1), tf.cast(self.y, dtype=tf.int64))
                 self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))

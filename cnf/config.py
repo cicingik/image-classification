@@ -13,15 +13,16 @@ WEIGHTS = os.path.join(BASE_DIR, 'vgg16.npy')
 CHECKPOINT = 'checkpoint/'  # Relatve to root folder, not need absolute path
 
 # Config for training
-IMAGE_SIZE = 128        # Image size for input training
+IMAGE_SIZE = 224        # Image size for input training
 BATCH_SIZE = 42         # How much image will train in a batch
 TEST_SIZE = 0.20        # Composition train and test data
-EPOCH_NUM = 50          # Total epoch for training
+EPOCH_NUM = 10          # Total epoch for training
 SKIP_STEP = 20          # How much step will pass for evaluation
 ITERATE_PER_EPOCH = 10  # Iteration per epoch
 NUM_ITERATE_TEST = 5    # Evaluation range
 CLASS_NUM = 42          # Total class
 IMAGE_CHANNEL = 3       # Image channel
 LEARNING_RATE = 0.001   # Learning rate
-MAX_TO_KEP = 5          # How much checkpoint will be keep
+MAX_TO_KEP = 3          # How much checkpoint will be keep
 
+CLASSIFICATION_URL = 'dadfa'

@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+docker run -p 8501:8501 --name shopee_serve --mount type=bind,source=/Users/mymac/cingik/product-detection/image-classification/save_models,target=/models/shopee -e MODEL_NAME=shopee -t tensorflow/serving:latest
