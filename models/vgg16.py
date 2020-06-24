@@ -1,157 +1,49 @@
-from abc import ABC
-import numpy as np
-import tensorflow as tf
-from .base import BaseModel, is_retrain
-from cnf.config import CLASS_NUM, IMAGE_SIZE, IMAGE_CHANNEL, LEARNING_RATE, MAX_TO_KEP, WEIGHTS
+# -*- coding: utf-8 -*-
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Flatten, Dense, Dropout
+from tensorflow.keras import optimizers
+from tensorflow.keras.applications.vgg16 import VGG16
+from cnf.config import (IMAGE_SIZE, IMAGE_CHANNEL, BATCH_SIZE, EPOCH_NUM,
+                        MODEL_DIR, TRAIN_VERSION, LEARNING_RATE, DECAY)
 
 
-class VGG16(BaseModel, ABC):
-    def __init__(self, trainable=True, retrain='complete'):
-        super(VGG16, self).__init__()
-        self.data_dict = np.load(WEIGHTS, encoding='latin1').item()
-        self.trainable = trainable
-        self.retrain = retrain
-        self.logits = None
-        self.logits_argmax = None
-        self.loss = None
-        self.accuracy = None
-        self.optimizer = None
-        self.train_step = None
-        self.build_model()
-        self.init_saver()
+class Models:
+    def __init__(self, training_set, len_training_set,  validation_set, len_validation_set):
+        self.model = self.__build
+        self.train_set = training_set
+        self.validation_set = validation_set
+        self.len_train = len_training_set
+        self.len_valutaion = len_validation_set
 
-    def build_model(self):
-        self.global_step_tensor = tf.Variable(0, trainable=False, name='global_step')
-        self.global_step_inc = self.global_step_tensor.assign(self.global_step_tensor)
+    @property
+    def __build(self):
+        model = VGG16(weights='imagenet', include_top=False, input_shape=(IMAGE_SIZE, IMAGE_SIZE, IMAGE_CHANNEL))
 
-        self.global_epoch_tensor = tf.Variable(0, trainable=False, name='global_epoch')
-        self.global_epoch_inc = self.global_epoch_tensor.assign(self.global_epoch_tensor + 1)
+        for layer in model.layers[:-5]:
+            layer.trainable = False
+        top_model = Sequential()
+        top_model.add(model)
+        top_model.add(Flatten())
+        top_model.add(Dense(256, activation='relu'))
+        top_model.add(Dropout(0.5))
+        top_model.add(Dense(1, activation='sigmoid'))
 
-        # Make input variable with tf.placeholder
-        with tf.name_scope('inputs') as scope:
-            self.x = tf.placeholder(tf.float32,
-                                    shape=[None, IMAGE_SIZE, IMAGE_SIZE, IMAGE_CHANNEL],
-                                    name='x')
-            self.y = tf.placeholder(tf.int32,
-                                    shape=[None],
-                                    name='y')
-            tf.add_to_collection('inputs', self.x)
-            tf.add_to_collection('inputs', self.y)
+        return top_model
 
-        # Make network based VGG16
-        with tf.name_scope('network') as scope:
-            conv1_1 = self.conv_layer(self.x, filters=64, k_size=3, stride=1, padding='SAME', name='conv1_1')
-            conv1_2 = self.conv_layer(conv1_1, filters=64, k_size=3, stride=1, padding='SAME', name='conv1_2')
-            pool1 = self.maxpool(conv1_2, k_size=2, stride=2, padding='SAME', scope_name='pool1')
+    @property
+    def train(self):
+        self.model.compile(
+            loss='binary_crossentropy',
+            optimizer=optimizers.RMSprop(lr=LEARNING_RATE, decay=DECAY),
+            metrics=['accuracy'])
+        self.model.fit_generator(
+            self.train_set,
+            steps_per_epoch=self.len_train // BATCH_SIZE,
+            epochs=EPOCH_NUM,
+            validation_data=self.validation_set,
+            validation_steps=self.len_valutaion // BATCH_SIZE)
 
-            conv2_1 = self.conv_layer(pool1, filters=128, k_size=3, stride=1, padding='SAME', name='conv2_1')
-            conv2_2 = self.conv_layer(conv2_1, filters=128, k_size=3, stride=1, padding='SAME', name='conv2_2')
-            pool2 = self.maxpool(conv2_2, k_size=2, stride=2, padding='SAME', scope_name='pool2')
+        self.model.save(f'{MODEL_DIR}/{TRAIN_VERSION}.h5', save_format='h5')
+        self.model.save(f'{MODEL_DIR}/{TRAIN_VERSION}.pb', save_format='tf')
 
-            conv3_1 = self.conv_layer(pool2, filters=256, k_size=3, stride=1, padding='SAME', name='conv3_1')
-            conv3_2 = self.conv_layer(conv3_1, filters=256, k_size=3, stride=1, padding='SAME', name='conv3_2')
-            conv3_3 = self.conv_layer(conv3_2, filters=256, k_size=3, stride=1, padding='SAME', name='conv3_3')
-            conv3_4 = self.conv_layer(conv3_3, filters=256, k_size=3, stride=1, padding='SAME', name='conv3_4')
-            pool3 = self.maxpool(conv3_4, k_size=2, stride=2, padding='SAME', scope_name='pool3')
-
-            conv4_1 = self.conv_layer(pool3, filters=512, k_size=3, stride=1, padding='SAME', name='conv4_1')
-            conv4_2 = self.conv_layer(conv4_1, filters=512, k_size=3, stride=1, padding='SAME', name='conv4_2')
-            conv4_3 = self.conv_layer(conv4_2, filters=512, k_size=3, stride=1, padding='SAME', name='conv4_3')
-            conv4_4 = self.conv_layer(conv4_3, filters=512, k_size=3, stride=1, padding='SAME', name='conv4_4')
-            pool4 = self.maxpool(conv4_4, k_size=2, stride=2, padding='SAME', scope_name='pool4')
-
-            conv5_1 = self.conv_layer(pool4, filters=512, k_size=3, stride=1, padding='SAME', name='conv5_1')
-            conv5_2 = self.conv_layer(conv5_1, filters=512, k_size=3, stride=1, padding='SAME', name='conv5_2')
-            conv5_3 = self.conv_layer(conv5_2, filters=512, k_size=3, stride=1, padding='SAME', name='conv5_3')
-            conv5_4 = self.conv_layer(conv5_3, filters=512, k_size=3, stride=1, padding='SAME', name='conv5_4')
-            pool5 = self.maxpool(conv5_4, k_size=2, stride=2, padding='SAME', scope_name='pool5')
-
-            cur_dim = pool5.get_shape()
-            pool5_dim = cur_dim[1] * cur_dim[2] * cur_dim[3]
-            pool5_flatten = tf.reshape(pool5, shape=[-1, pool5_dim])
-
-            fc6 = self.fully_connected(pool5_flatten, out_dim=1024, scope_name='fc6', activation=tf.nn.relu)
-
-            fc7 = self.fully_connected(fc6, out_dim=512, scope_name='fc7', activation=tf.nn.relu)
-
-            self.logits = self.fully_connected(fc7, out_dim=int(CLASS_NUM), scope_name='logits', activation=False)
-
-            tf.add_to_collection('logits', self.logits)
-
-            with tf.name_scope('logits_argmax') as scope:
-                self.logits_argmax = tf.argmax(self.logits, axis=1, output_type=tf.int64, name='out_argmax')
-
-            with tf.name_scope('loss'):
-                entropy = tf.losses.sparse_softmax_cross_entropy(labels=self.y, logits=self.logits)
-                self.loss = tf.reduce_mean(entropy, name='loss')
-
-            with tf.name_scope('train_step') as scope:
-                self.optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE)
-
-                update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-
-                with tf.control_dependencies(update_ops):
-                    self.train_step = self.optimizer.minimize(self.loss, global_step=self.global_step_tensor)
-
-            with tf.name_scope('accuracy') as scope:
-                prediction = tf.nn.softmax(self.logits, name='prediction')
-                correct_prediction = tf.equal(tf.argmax(prediction, axis=1), tf.cast(self.y, dtype=tf.int64))
-                self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
-            tf.add_to_collection('train', self.train_step)
-            tf.add_to_collection('loss', self.loss)
-            tf.add_to_collection('acc', self.accuracy)
-
-    def conv_layer(self, inputs, filters, k_size, stride, padding, name, active=False):
-        in_channels = inputs.shape[-1]
-        out_channels = filters
-        rt_status = is_retrain(self.retrain, name)
-
-        init_value_in = tf.truncated_normal(shape=[k_size, k_size, int(in_channels), out_channels], stddev=0.001)
-        init_value_out = tf.truncated_normal([out_channels], stddev=0.001)
-
-        kernel = self.get_var(init_value_in, name, 0, name + "_filters", retrain=rt_status)
-        biases = self.get_var(init_value_out, name, 1, name + "_biases", retrain=rt_status)
-
-        conv = tf.nn.conv2d(inputs, kernel, strides=[1, stride, stride, 1], padding=padding)
-        conv = tf.nn.bias_add(conv, biases)
-
-        f_conv = tf.nn.tanh(conv) if active else tf.nn.relu(conv)
-
-        return f_conv
-
-    def get_var(self, initial_value, name, idx, var_name, retrain=True):
-        if self.data_dict is not None and name in self.data_dict:
-            value = self.data_dict[name][idx]
-        else:
-            value = initial_value
-
-        if self.trainable and retrain:
-            var = tf.Variable(value, name=var_name)
-        else:
-            var = tf.Variable(value, name=var_name, trainable=False)
-
-        return var
-
-    @staticmethod
-    def maxpool(inputs, k_size, stride, padding='VALID', scope_name='maxpool'):
-
-        with tf.variable_scope(scope_name, reuse=tf.AUTO_REUSE):
-            pool = tf.nn.max_pool(inputs, ksize=[1, k_size, k_size, 1], strides=[1, stride, stride, 1], padding=padding)
-        return pool
-
-    @staticmethod
-    def fully_connected(inputs, out_dim, scope_name, activation=tf.nn.relu):
-
-        with tf.variable_scope(scope_name, reuse=tf.AUTO_REUSE):
-            in_dim = inputs.shape[-1]
-            w = tf.get_variable('weights', [in_dim, out_dim], initializer=tf.contrib.layers.xavier_initializer())
-            b = tf.get_variable('biases', [out_dim], initializer=tf.random_normal_initializer())
-            out = tf.nn.bias_add(tf.matmul(inputs, w), b)
-
-            if activation:
-                out = activation(out)
-            return out
-
-    def init_saver(self):
-        self.saver = tf.train.Saver(max_to_keep=MAX_TO_KEP, save_relative_paths=True)
+        return
