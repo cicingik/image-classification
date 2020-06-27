@@ -33,14 +33,11 @@ def load_image(img_path, show=False):
 
     return img_tensor
 
-counter = 0
+
 def predict(filename, model):
-    counter += 1
     im = load_image(filename, show=False)
     pre = model.predict(im)
     img_class = np.argmax(pre)
-    if counter % 100 == 0:
-        print(f'{counter} data processed')
     return img_class
 
 from tensorflow.keras.models import Sequential
