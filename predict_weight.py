@@ -42,19 +42,19 @@ def predict(filename, model):
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Flatten, Dense, Dropout, GlobalAveragePooling2D
-from tensorflow.keras.applications import Xception
+from tensorflow.keras.applications import Xception, InceptionResNetV2
 
 def main(model_type, filemodel):
-    model = Xception(weights='imagenet', include_top=False, input_shape=(299, 299, 3))
+    model = InceptionResNetV2(weights='imagenet', include_top=False, input_shape=(IMAGE_SIZE, IMAGE_SIZE, IMAGE_CHANNEL))
     for layer in model.layers[:10]:
         layer.trainable = False
     top_model = Sequential()
     top_model.add(model)
+    top_model.add(GlobalAveragePooling2D())
     top_model.add(Flatten())
     top_model.add(Dense(256, activation='relu'))
     top_model.add(Dropout(0.3))
     top_model.add(Dense(42, activation='softmax'))
-    top_model.load_weights(filemodel)
 
     df = pd.read_csv(TEST_FILE, delimiter=',')
     df['file_path'] = df.apply(lambda x: os.path.join(TEST_DIR, x.filename), axis=1)
