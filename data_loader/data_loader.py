@@ -38,7 +38,11 @@ class DataLoader:
 
     @property
     def __generate_data(self):
-        datagen = ImageDataGenerator(rescale=1. / 255., validation_split=TEST_SIZE)
+        datagen = ImageDataGenerator(rescale=1. / 255.,
+            horizontal_flip = True,
+            shear_range = 0.2,
+            zoom_range = 0.2,
+            validation_split=TEST_SIZE)
         return datagen
 
     @property

@@ -5,6 +5,7 @@ import colorama
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Flatten, Dense, Dropout
 from tensorflow.keras import optimizers
+from tensorflow.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint
 from tensorflow.keras.applications import NASNetLarge, Xception
 from tensorflow.keras.applications.vgg16 import VGG16
 from cnf.config import (IMAGE_SIZE, IMAGE_CHANNEL, BATCH_SIZE, EPOCH_NUM,
@@ -30,7 +31,7 @@ class Models:
         top_model.add(Flatten())
         top_model.add(Dense(256, activation='relu'))
         top_model.add(Dropout(0.3))
-        top_model.add(Dense(CLASS_NUM, activation='sigmoid'))
+        top_model.add(Dense(CLASS_NUM, activation='softmax'))
 
         return top_model
 
@@ -77,13 +78,24 @@ class Models:
     def train(self):
         self.model.compile(
             loss='sparse_categorical_crossentropy',
-            optimizer=optimizers.Adam(lr=LEARNING_RATE, decay=DECAY),
+            optimizer=optimizers.Adam(lr=LEARNING_RATE),
             metrics=['accuracy'])
+
+        reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=2)
+        checkpoint_filepath = '/content/drive/My Drive/sopikodelig/inceptionv3-{epoch:02d}-{val_accuracy:.4f}.hdf5'
+        model_checkpoint_callback = ModelCheckpoint(
+            filepath=checkpoint_filepath,
+            save_weights_only=True,
+            monitor='val_acc',
+            mode='max',
+            save_best_only=True)
+
         self.model.fit(
             x = self.train_set,
             steps_per_epoch=self.train_set.n // BATCH_SIZE,
             epochs=EPOCH_NUM,
             workers=6,
+            callbacks=[reduce_lr, model_checkpoint_callback],
             validation_data=self.validation_set,
             validation_steps=self.validation_set.n // BATCH_SIZE)
 
