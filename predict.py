@@ -47,17 +47,18 @@ def predict(filename: str) -> int:
 def main():
     df = pd.read_csv(TEST_FILE, delimiter=',')
     df['file_path'] = df.apply(lambda x: os.path.join(TEST_DIR, x.filename), axis=1)
-    df['class'] = df.apply(lambda x: predict(x.file_path), axis=1)
-    df.to_csv('predict.csv', mode='a', header=True, index=False, sep=',')
-    print(df)
+    df['category'] = df.apply(lambda x: predict(x.file_path), axis=1)
+    dk = df[['filename', 'category']]
+    dk.to_csv('predict.csv', mode='a', header=True, index=False, sep=',')
+    print(dk)
 
 
 if __name__ == '__main__':
-    # main()
-    df = pd.read_csv('predict.csv')
-    dk = df[['filename', 'class']]
-    dk.rename(columns={
-        'class': 'category'
-    }, inplace=True)
-    dk.to_csv('submit.csv', mode='a', header=True, index=False, sep=',')
-    print(dk)
+    main()
+    # df = pd.read_csv('predict.csv')
+    # dk = df[['filename', 'class']]
+    # dk.rename(columns={
+    #     'class': 'category'
+    # }, inplace=True)
+    # dk.to_csv('submit.csv', mode='a', header=True, index=False, sep=',')
+    # print(dk)

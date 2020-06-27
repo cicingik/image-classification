@@ -86,7 +86,7 @@ class Models:
         model_checkpoint_callback = ModelCheckpoint(
             filepath=checkpoint_filepath,
             save_weights_only=True,
-            monitor='val_acc',
+            monitor='val_accuracy',
             mode='max',
             save_best_only=True)
 
