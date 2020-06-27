@@ -36,7 +36,8 @@ class Models:
     @property
     def __build_xception(self):
         model = Xception(weights='imagenet', include_top=False, input_shape=(IMAGE_SIZE, IMAGE_SIZE, IMAGE_CHANNEL))
-        
+        for layer in model.layers:
+            layer.trainable = False
         top_model = Sequential()
         top_model.add(model)
         top_model.add(Flatten())
