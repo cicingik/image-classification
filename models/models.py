@@ -22,8 +22,9 @@ class Models:
     def __build_vgg16(self):
         model = VGG16(weights='imagenet', include_top=False, input_shape=(IMAGE_SIZE, IMAGE_SIZE, IMAGE_CHANNEL))
 
-        for layer in model.layers:
+        for layer in model.layers[:10]:
             layer.trainable = False
+            
         top_model = Sequential()
         top_model.add(model)
         top_model.add(Flatten())
@@ -36,14 +37,14 @@ class Models:
     @property
     def __build_xception(self):
         model = Xception(weights='imagenet', include_top=False, input_shape=(IMAGE_SIZE, IMAGE_SIZE, IMAGE_CHANNEL))
-        for layer in model.layers:
+        for layer in model.layers[:10]:
             layer.trainable = False
         top_model = Sequential()
         top_model.add(model)
         top_model.add(Flatten())
         top_model.add(Dense(256, activation='relu'))
         top_model.add(Dropout(0.3))
-        top_model.add(Dense(CLASS_NUM, activation='sigmoid'))
+        top_model.add(Dense(42, activation='softmax'))
 
         return top_model
 
