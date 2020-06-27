@@ -6,7 +6,7 @@ import argparse
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from cnf.config import IMAGE_SIZE, MODEL, TEST_DIR, TEST_FILE
+from cnf.config import IMAGE_SIZE, MODEL, TEST_DIR, TEST_FILE, IMAGE_CHANNEL
 from cnf.argument import options
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
