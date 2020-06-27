@@ -99,7 +99,7 @@ class Models:
             validation_data=self.validation_set,
             validation_steps=self.validation_set.n // BATCH_SIZE)
 
-        self.model.save(f'{MODEL_DIR}/{TRAIN_VERSION}.h5', save_format='h5')
-        self.model.save(f'{MODEL_DIR}/{TRAIN_VERSION}.pb', save_format='tf')
+        # self.model.save(f'{MODEL_DIR}/{TRAIN_VERSION}.h5', save_format='h5')
+        # self.model.save(f'{MODEL_DIR}/{TRAIN_VERSION}.pb', save_format='tf')
 
         return
