@@ -56,8 +56,8 @@ def main(model_type, filemodel):
     top_model.add(Dense(42, activation='softmax'))
     top_model.load_weights(filemodel)
 
-    df = pd.read_csv('../../Downloads/shopee-product-detection-open/test.csv', delimiter=',')
-    df['file_path'] = df.apply(lambda x: os.path.join('../../Downloads/shopee-product-detection-open/test/test/test/', x.filename), axis=1)
+    df = pd.read_csv(TEST_FILE, delimiter=',')
+    df['file_path'] = df.apply(lambda x: os.path.join(TEST_DIR, x.filename), axis=1)
     df['category'] = df.apply(lambda x: predict(x.file_path, top_model), axis=1)
     dk = df[['filename', 'category']]
     dk.to_csv(f'{model_type}-predict.csv', mode='a', header=True, index=False, sep=',')
