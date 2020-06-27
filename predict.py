@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import json
 import os
+import sys
 import requests
 import argparse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from cnf.config import IMAGE_SIZE, MODEL, TEST_DIR, TEST_FILE
+from cnf.argument import options
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 
@@ -17,9 +19,6 @@ from tensorflow.keras.preprocessing import image
 #     default='None',
 #     help='Folder image that will predict')
 # args = argparser.parse_args()
-
-model = load_model(MODEL)
-
 
 def load_image(img_path, show=False):
 
@@ -36,7 +35,7 @@ def load_image(img_path, show=False):
     return img_tensor
 
 
-def predict(filename: str) -> int:
+def predict(filename: str, model) -> int:
     print(f'')
     im = load_image(filename, show=False)
     pre = model.predict(im)
@@ -44,17 +43,18 @@ def predict(filename: str) -> int:
     return img_class
 
 
-def main():
+def main(filemodel):
+    model = load_model(filemodel)
     df = pd.read_csv(TEST_FILE, delimiter=',')
     df['file_path'] = df.apply(lambda x: os.path.join(TEST_DIR, x.filename), axis=1)
-    df['category'] = df.apply(lambda x: predict(x.file_path), axis=1)
+    df['category'] = df.apply(lambda x: predict(x.file_path, model), axis=1)
     dk = df[['filename', 'category']]
     dk.to_csv('predict.csv', mode='a', header=True, index=False, sep=',')
     print(dk)
 
 
 if __name__ == '__main__':
-    main()
+    # main()
     # df = pd.read_csv('predict.csv')
     # dk = df[['filename', 'class']]
     # dk.rename(columns={
@@ -62,3 +62,11 @@ if __name__ == '__main__':
     # }, inplace=True)
     # dk.to_csv('submit.csv', mode='a', header=True, index=False, sep=',')
     # print(dk)
+    p = options()
+    args = p.parse_args()
+
+    if not all([args.filemodel]):
+        p.print_help()
+        sys.exit(2)
+
+    main(args.filemodel)
