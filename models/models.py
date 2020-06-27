@@ -35,7 +35,7 @@ class Models:
 
     @property
     def __build_nasnetL(self):
-        model = NASNetLarge(weights='imagenet', include_top=False, input_shape=(331, 331, IMAGE_CHANNEL))
+        model = NASNetLarge(weights='imagenet', include_top=False, input_shape=(IMAGE_SIZE, IMAGE_SIZE, IMAGE_CHANNEL))
         
         top_model = Sequential()
         top_model.add(model)

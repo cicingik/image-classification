@@ -14,7 +14,7 @@ MODEL = os.path.join(MODEL_DIR, 'version-1.h5')
 
 
 # Config for training
-IMAGE_SIZE = 224        # Image size for input training
+IMAGE_SIZE = 331        # Image size for input training
 IMAGE_CHANNEL = 3       # Image channel
 BATCH_SIZE = 124         # How much image will train in a batch
 EPOCH_NUM = 10          # Total epoch for training
