@@ -5,7 +5,7 @@ import colorama
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Flatten, Dense, Dropout
 from tensorflow.keras import optimizers
-from tensorflow.keras.applications import NASNetLarge
+from tensorflow.keras.applications import NASNetLarge, Xception
 from tensorflow.keras.applications.vgg16 import VGG16
 from cnf.config import (IMAGE_SIZE, IMAGE_CHANNEL, BATCH_SIZE, EPOCH_NUM,
                         MODEL_DIR, TRAIN_VERSION, LEARNING_RATE, DECAY, CLASS_NUM)
@@ -34,6 +34,19 @@ class Models:
         return top_model
 
     @property
+    def __build_xception(self):
+        model = Xception(weights='imagenet', include_top=False, input_shape=(IMAGE_SIZE, IMAGE_SIZE, IMAGE_CHANNEL))
+        
+        top_model = Sequential()
+        top_model.add(model)
+        top_model.add(Flatten())
+        top_model.add(Dense(256, activation='relu'))
+        top_model.add(Dropout(0.3))
+        top_model.add(Dense(CLASS_NUM, activation='sigmoid'))
+
+        return top_model
+
+    @property
     def __build_nasnetL(self):
         model = NASNetLarge(weights='imagenet', include_top=False, input_shape=(IMAGE_SIZE, IMAGE_SIZE, IMAGE_CHANNEL))
         
@@ -49,6 +62,8 @@ class Models:
     def build_model(self):
         if self.model_type == 'vgg16':
             model = self.__build_vgg16
+        elif self.model_type == 'xception':
+            model = self.__build_xception
         elif self.model_type == 'nasnetL':
             model = self.__build_nasnetL
         else:
