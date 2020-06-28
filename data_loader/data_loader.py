@@ -2,12 +2,12 @@
 import pandas as pd
 from sklearn.utils import shuffle
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from cnf.config import IMAGE_SIZE, BATCH_SIZE, TRAIN_FILE, TEST_FILE, TRAIN_DIR, TEST_SIZE, TEST_DIR
+from cnf.config import BATCH_SIZE, TRAIN_FILE, TEST_FILE, TRAIN_DIR, TEST_SIZE, TEST_DIR
 
 
 class DataLoader:
 
-    def __init__(self):
+    def __init__(self, image_size):
         self.df_data_train = self.__open_train_data
         self.df_data_test = self.__open_test_data
         self.datagen_train = self.__generate_data
@@ -16,6 +16,7 @@ class DataLoader:
         self.valuation_set = self.__valuation_set
         self.len_valuation_set = self.__valuation_set.n
         self.test_set = self.__test_set
+        self.image_size = image_size
 
     @property
     def __open_train_data(self):
@@ -36,12 +37,15 @@ class DataLoader:
         data = shuffle(data)
         return data
 
+    # Please provide some augmentation image here for reduce overfitting
     @property
     def __generate_data(self):
         datagen = ImageDataGenerator(rescale=1. / 255.,
+            vertical_flip=True,
             horizontal_flip = True,
-            shear_range = 0.2,
-            zoom_range = 0.2,
+            rotation_range=90,
+            shear_range = 0.5,
+            zoom_range = 0.5,
             validation_split=TEST_SIZE)
         return datagen
 
@@ -51,7 +55,7 @@ class DataLoader:
             dataframe=self.df_data_train, directory=TRAIN_DIR,
             x_col='filename', y_col='category', subset='training',
             batch_size=BATCH_SIZE, seed=42, shuffle=True,
-            class_mode='sparse', target_size=(IMAGE_SIZE, IMAGE_SIZE))
+            class_mode='sparse', target_size=(self.image_size, self.image_size))
         return training_set
 
     @property
@@ -60,7 +64,7 @@ class DataLoader:
             dataframe=self.df_data_train, directory=TRAIN_DIR,
             x_col='filename', y_col='category', subset='validation',
             batch_size=BATCH_SIZE, seed=42, shuffle=True,
-            class_mode='sparse', target_size=(IMAGE_SIZE, IMAGE_SIZE))
+            class_mode='sparse', target_size=(self.image_size, self.image_size))
         return val_set
 
     @property
@@ -75,7 +79,7 @@ class DataLoader:
             seed=42,
             shuffle=False,
             class_mode=None,
-            target_size=(IMAGE_SIZE, IMAGE_SIZE))
+            target_size=(self.image_size, self.image_size))
         return test_generator
 
     def __dict__(self):
@@ -87,5 +91,6 @@ class DataLoader:
             'len_data_train': self.len_train_set,
             'data_valuation': self.valuation_set,
             'len_data_valuation': self.len_valuation_set,
-            'data_test': self.test_set
+            'data_test': self.test_set,
+            'image_size': self.image_size
         }
