@@ -4,8 +4,8 @@ import os
 # Basic config for foldering
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = '/content/'
-TRAIN_DIR = os.path.join(DATA_DIR, 'train/train/train/')
-TEST_DIR = os.path.join(DATA_DIR, 'test/test/test/')
+TRAIN_DIR = os.path.join(DATA_DIR, 'train/train/')
+TEST_DIR = os.path.join(DATA_DIR, 'test/test/')
 TEST_FILE = os.path.join(DATA_DIR, 'test.csv')
 TRAIN_FILE = os.path.join(DATA_DIR, 'train.csv')
 MODEL_DIR = os.path.join(BASE_DIR, 'save_models')

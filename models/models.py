@@ -12,10 +12,10 @@ from cnf.config import (IMAGE_SIZE, IMAGE_CHANNEL, BATCH_SIZE, EPOCH_NUM,
 class Models:
     def __init__(self, training_set,  validation_set, model_type: str, image_size):
         self.model_type = model_type
+        self.image_size = image_size
         self.train_set = training_set
         self.validation_set = validation_set
         self.model = self.build_model()
-        self.image_size = image_size
 
     def add_fc_layer(model):
         for layer in model.layers[:len(model.layers)//2]:
