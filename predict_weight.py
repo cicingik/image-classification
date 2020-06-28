@@ -54,13 +54,16 @@ def main(model_type, filemodel):
     top_model.add(Flatten())
     top_model.add(Dense(256, activation='relu'))
     top_model.add(Dropout(0.3))
-    top_model.add(Dense(42, activation='softmax'))
+    top_model.add(Dense(42, activation='softmax')
+    top_model.load_weights(filemodel)
+
+    csv_filepath = f'/content/drive/My Drive/sopikodelig/{model_type}-predict.csv'
 
     df = pd.read_csv(TEST_FILE, delimiter=',')
     df['file_path'] = df.apply(lambda x: os.path.join(TEST_DIR, x.filename), axis=1)
     df['category'] = df.apply(lambda x: predict(x.file_path, top_model), axis=1)
     dk = df[['filename', 'category']]
-    dk.to_csv(f'{model_type}-predict.csv', mode='a', header=True, index=False, sep=',')
+    dk.to_csv(csv_filepath, mode='a', header=True, index=False, sep=',')
     print(dk)
 
 
