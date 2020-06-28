@@ -9,6 +9,23 @@ from cnf.config import (IMAGE_SIZE, IMAGE_CHANNEL, BATCH_SIZE, EPOCH_NUM,
                         LEARNING_RATE, DECAY, CLASS_NUM)
 
 
+def add_fc_layer(model):
+    for layer in model.layers[:len(model.layers) // 2]:
+        layer.trainable = False
+
+    top_model = Sequential()
+    top_model.add(model)
+    top_model.add(GlobalAveragePooling2D())
+    top_model.add(Flatten())
+    top_model.add(Dense(256, activation='relu'))
+    top_model.add(Dropout(0.5))
+    top_model.add(Dense(128, activation='relu'))
+    top_model.add(Dropout(0.5))
+    top_model.add(Dense(CLASS_NUM, activation='softmax'))
+
+    return top_model
+
+
 class Models:
     def __init__(self, training_set,  validation_set, model_type: str, image_size):
         self.model_type = model_type
@@ -16,22 +33,6 @@ class Models:
         self.train_set = training_set
         self.validation_set = validation_set
         self.model = self.build_model()
-
-    def add_fc_layer(model):
-        for layer in model.layers[:len(model.layers)//2]:
-            layer.trainable = False
-
-        top_model = Sequential()
-        top_model.add(model)
-        top_model.add(GlobalAveragePooling2D())
-        top_model.add(Flatten())
-        top_model.add(Dense(256, activation='relu'))
-        top_model.add(Dropout(0.5))
-        top_model.add(Dense(128, activation='relu'))
-        top_model.add(Dropout(0.5))
-        top_model.add(Dense(CLASS_NUM, activation='softmax'))
-
-        return top_model
 
     @property
     def __build_vgg16(self):
