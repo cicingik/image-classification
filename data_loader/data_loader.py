@@ -8,6 +8,7 @@ from cnf.config import BATCH_SIZE, TRAIN_FILE, TEST_FILE, TRAIN_DIR, TEST_SIZE, 
 class DataLoader:
 
     def __init__(self, image_size):
+        self.image_size = image_size
         self.df_data_train = self.__open_train_data
         self.df_data_test = self.__open_test_data
         self.datagen_train = self.__generate_data
@@ -16,7 +17,6 @@ class DataLoader:
         self.valuation_set = self.__valuation_set
         self.len_valuation_set = self.__valuation_set.n
         self.test_set = self.__test_set
-        self.image_size = image_size
 
     @property
     def __open_train_data(self):
