@@ -54,7 +54,7 @@ def main(model_type, filemodel):
     top_model.add(Flatten())
     top_model.add(Dense(256, activation='relu'))
     top_model.add(Dropout(0.3))
-    top_model.add(Dense(42, activation='softmax')
+    top_model.add(Dense(42, activation='softmax'))
     top_model.load_weights(filemodel)
 
     csv_filepath = f'/content/drive/My Drive/sopikodelig/{model_type}-predict.csv'
