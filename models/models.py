@@ -69,9 +69,8 @@ class Models:
             metrics=['accuracy'])
 
         # reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=2)
-        checkpoint_filepath = '/content/drive/My Drive/sopikodelig/{self.model_type}-{epoch:02d}-{val_accuracy:.4f}.hdf5'
         model_checkpoint_callback = ModelCheckpoint(
-            filepath=checkpoint_filepath,
+            filepath='/content/drive/My Drive/sopikodelig/{epoch:02d}-{val_accuracy:.4f}.hdf5',
             save_weights_only=False,
             monitor='val_accuracy',
             mode='max',
