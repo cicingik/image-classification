@@ -57,6 +57,8 @@ class Models:
     def build_model(self):
         if self.model_type == 'vgg16':
             model = self.__build_vgg16
+        elif self.model_type == 'vgg19':
+            model = self.__build_vgg19
         elif self.model_type == 'xception':
             model = self.__build_xception
         elif self.model_type == 'inceptionresnetv2':
