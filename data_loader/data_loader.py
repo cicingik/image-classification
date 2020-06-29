@@ -22,7 +22,7 @@ class DataLoader:
     @property
     def __open_train_data(self):
         data = pd.read_csv(TRAIN_FILE, delimiter=',')
-        data['category'] = data.category.apply(lambda row: '0' + str(row) if int(row) < 10 else str(row))
+        data['category'] = data.category.apply(lambda row: '0' + str(int(row)) if int(row) < 10 else str(row))
         data['filename'] = data.apply(lambda row: f'{row.category}/{row.filename}', axis=1)
         data = shuffle(data)
         return data
@@ -30,7 +30,7 @@ class DataLoader:
     @property
     def __open_valuation_data(self):
         data = pd.read_csv(VAL_FILE, delimiter=',')
-        data['category'] = data.category.apply(lambda row: '0' + str(row) if int(row) < 10 else str(row))
+        data['category'] = data.category.apply(lambda row: '0' + str(int(row)) if int(row) < 10 else str(row))
         data['filename'] = data.apply(lambda row: f'{row.category}/{row.filename}', axis=1)
         data = shuffle(data)
         return data
