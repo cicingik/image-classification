@@ -3,13 +3,14 @@ import os
 
 # Basic config for foldering
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(BASE_DIR, 'shopee-product-detection-dataset')
+DATA_DIR = 'C:/Users/Gilang/Documents/Sopikodelig/Image_Recognition/'
 TRAIN_DIR = os.path.join(DATA_DIR, 'train/train/')
 TEST_DIR = os.path.join(DATA_DIR, 'test/test/')
 TEST_FILE = os.path.join(DATA_DIR, 'test.csv')
 TRAIN_FILE = os.path.join(DATA_DIR, 'train.csv')
 MODEL_DIR = os.path.join(BASE_DIR, 'save_models')
 TRAIN_VERSION = 'version-1'
+MODEL = os.path.join(MODEL_DIR, 'version-1.h5')
 
 
 # Config for training
