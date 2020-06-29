@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
-import json
 import os
 import sys
-import requests
-import argparse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from cnf.config import IMAGE_SIZE, MODEL, TEST_DIR, TEST_FILE
+from cnf.config import IMAGE_SIZE, TEST_DIR, TEST_FILE
 from cnf.argument import options
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
@@ -36,37 +33,28 @@ def load_image(img_path, show=False):
 
 
 def predict(filename: str, model) -> int:
-    print(f'')
     im = load_image(filename, show=False)
     pre = model.predict(im)
     img_class = np.argmax(pre)
     return img_class
 
 
-def main(filemodel):
-    model = load_model(filemodel)
+def main(savedmodel):
+    model = load_model(savedmodel)
     df = pd.read_csv(TEST_FILE, delimiter=',')
     df['file_path'] = df.apply(lambda x: os.path.join(TEST_DIR, x.filename), axis=1)
     df['category'] = df.apply(lambda x: predict(x.file_path, model), axis=1)
     dk = df[['filename', 'category']]
-    dk.to_csv(f'{filemodel}-predict.csv', mode='a', header=True, index=False, sep=',')
+    dk.to_csv(f'{savedmodel}-predict.csv', mode='a', header=True, index=False, sep=',')
     print(dk)
 
 
 if __name__ == '__main__':
-    # main()
-    # df = pd.read_csv('predict.csv')
-    # dk = df[['filename', 'class']]
-    # dk.rename(columns={
-    #     'class': 'category'
-    # }, inplace=True)
-    # dk.to_csv('submit.csv', mode='a', header=True, index=False, sep=',')
-    # print(dk)
     p = options()
     args = p.parse_args()
 
-    if not all([args.filemodel]):
+    if not all([args.savedmodel]):
         p.print_help()
         sys.exit(2)
 
-    main(args.filemodel)
+    main(args.savedmodel)

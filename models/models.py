@@ -5,7 +5,7 @@ from tensorflow.keras import optimizers
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.applications import Xception, InceptionResNetV2
 from tensorflow.keras.applications.vgg16 import VGG16
-from cnf.config import (IMAGE_SIZE, IMAGE_CHANNEL, BATCH_SIZE, EPOCH_NUM,
+from cnf.config import (IMAGE_CHANNEL, BATCH_SIZE, EPOCH_NUM,
                         LEARNING_RATE, DECAY, CLASS_NUM)
 
 
@@ -27,12 +27,12 @@ def add_fc_layer(model):
 
 
 class Models:
-    def __init__(self, training_set, validation_set, model_type, image_size, saved_model=None):
+    def __init__(self, training_set, validation_set, model_type, image_size):
         self.model_type = model_type
         self.image_size = image_size
         self.train_set = training_set
         self.validation_set = validation_set
-        self.model = self.build_model() if saved_model is None else saved_model
+        self.model = self.build_model()
 
     @property
     def __build_vgg16(self):
@@ -87,8 +87,5 @@ class Models:
             callbacks=[model_checkpoint_callback],
             validation_data=self.validation_set,
             validation_steps=self.validation_set.n // BATCH_SIZE)
-
-        # self.model.save(f'{MODEL_DIR}/{TRAIN_VERSION}.h5', save_format='h5')
-        # self.model.save(f'{MODEL_DIR}/{TRAIN_VERSION}.pb', save_format='tf')
 
         return
