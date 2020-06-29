@@ -22,14 +22,16 @@ class DataLoader:
     @property
     def __open_train_data(self):
         data = pd.read_csv(TRAIN_FILE, delimiter=',')
-        data['filename'] = data.apply(lambda row: '/'.join([str(row.category), row.filename]), axis=1)
+        data['category'] = data.apply(lambda row: str(row), axis=1)
+        data['filename'] = data.apply(lambda row: '/'.join([row.category, row.filename]), axis=1)
         data = shuffle(data)
         return data
 
     @property
     def __open_valuation_data(self):
         data = pd.read_csv(VAL_FILE, delimiter=',')
-        data['filename'] = data.apply(lambda row: '/'.join([str(row.category), row.filename]), axis=1)
+        data['category'] = data.apply(lambda row: str(row), axis=1)
+        data['filename'] = data.apply(lambda row: '/'.join([row.category, row.filename]), axis=1)
         data = shuffle(data)
         return data
 
