@@ -2,7 +2,7 @@
 import pandas as pd
 from sklearn.utils import shuffle
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from cnf.config import BATCH_SIZE, TRAIN_FILE, TEST_FILE, TRAIN_DIR, TEST_SIZE, TEST_DIR
+from cnf.config import BATCH_SIZE, TRAIN_FILE, VAL_FILE,  TEST_FILE, TRAIN_DIR, TEST_SIZE, TEST_DIR
 
 
 class DataLoader:
@@ -10,6 +10,7 @@ class DataLoader:
     def __init__(self, image_size):
         self.image_size = image_size
         self.df_data_train = self.__open_train_data
+        self.df_data_val = self.__open_valuation_data
         self.df_data_test = self.__open_test_data
         self.datagen_train = self.__generate_data
         self.train_set = self.__trains_set
@@ -21,6 +22,16 @@ class DataLoader:
     @property
     def __open_train_data(self):
         data = pd.read_csv(TRAIN_FILE, delimiter=',')
+        data['category'] = data.apply(lambda row:
+                                      '0' + str(row.category) if len(str(row.category)) < 2 else str(row.category),
+                                      axis=1)
+        data['filename'] = data.apply(lambda row: '/'.join([row.category, row.filename]), axis=1)
+        data = shuffle(data)
+        return data
+
+    @property
+    def __open_valuation_data(self):
+        data = pd.read_csv(VAL_FILE, delimiter=',')
         data['category'] = data.apply(lambda row:
                                       '0' + str(row.category) if len(str(row.category)) < 2 else str(row.category),
                                       axis=1)
@@ -45,15 +56,14 @@ class DataLoader:
             horizontal_flip = True,
             rotation_range=90,
             shear_range = 0.5,
-            zoom_range = 0.5,
-            validation_split=TEST_SIZE)
+            zoom_range = 0.5)
         return datagen
 
     @property
     def __trains_set(self):
         training_set = self.datagen_train.flow_from_dataframe(
             dataframe=self.df_data_train, directory=TRAIN_DIR,
-            x_col='filename', y_col='category', subset='training',
+            x_col='filename', y_col='category',
             batch_size=BATCH_SIZE, seed=42, shuffle=True,
             class_mode='sparse', target_size=(self.image_size, self.image_size))
         return training_set
@@ -61,15 +71,15 @@ class DataLoader:
     @property
     def __valuation_set(self):
         val_set = self.datagen_train.flow_from_dataframe(
-            dataframe=self.df_data_train, directory=TRAIN_DIR,
-            x_col='filename', y_col='category', subset='validation',
+            dataframe=self.df_data_val, directory=TRAIN_DIR,
+            x_col='filename', y_col='category',
             batch_size=BATCH_SIZE, seed=42, shuffle=True,
             class_mode='sparse', target_size=(self.image_size, self.image_size))
         return val_set
 
     @property
     def __test_set(self):
-        datagen = ImageDataGenerator(rescale=1. / 255., validation_split=TEST_SIZE)
+        datagen = ImageDataGenerator(rescale=1. / 255.)
         test_generator = datagen.flow_from_dataframe(
             dataframe=self.df_data_test,
             directory=TEST_DIR,
