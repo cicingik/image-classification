@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-import os
-import sys
-import colorama
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Flatten, Dense, Dropout
 from tensorflow.keras import optimizers
@@ -16,6 +14,7 @@ class Models:
         self.train_set = training_set
         self.validation_set = validation_set
         self.model = self.build_model()
+        self.ckpt, self.early = self.callback
 
     @property
     def __build_vgg16(self):
@@ -46,14 +45,23 @@ class Models:
             loss='sparse_categorical_crossentropy',
             optimizer=optimizers.Adam(lr=LEARNING_RATE, decay=DECAY),
             metrics=['accuracy'])
-        self.model.fit_generator(
-            self.train_set,
+        hist = self.model.fit_generator(
+            generator=self.train_set,
             steps_per_epoch=self.train_set.n // BATCH_SIZE,
             epochs=EPOCH_NUM,
             validation_data=self.validation_set,
-            validation_steps=self.validation_set.n // BATCH_SIZE)
+            validation_steps=self.validation_set.n // BATCH_SIZE,
+            callbacks=[self.ckpt, self.early])
 
-        self.model.save(f'{MODEL_DIR}/{TRAIN_VERSION}.h5', save_format='h5')
-        self.model.save(f'{MODEL_DIR}/{TRAIN_VERSION}.pb', save_format='tf')
+        # self.model.save(f'{MODEL_DIR}/{TRAIN_VERSION}.h5', save_format='h5')
+        # self.model.save(f'{MODEL_DIR}/{TRAIN_VERSION}.pb', save_format='tf')
 
         return
+
+    @property
+    def callback(self):
+        ckpt = ModelCheckpoint(f'{MODEL_DIR}/{TRAIN_VERSION}.h5', monitor='val_acc', verbose=1, save_best_only=True,
+                               save_weights_only=False, mode='auto', period=1)
+
+        early = EarlyStopping(monitor='val_acc', min_delta=0, patience=20, verbose=1, mode='auto')
+        return ckpt, early
