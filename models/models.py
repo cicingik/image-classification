@@ -5,6 +5,7 @@ from tensorflow.keras import optimizers
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.applications import Xception, InceptionResNetV2
 from tensorflow.keras.applications.vgg16 import VGG16
+from tensorflow.keras.applications.vgg19 import VGG19
 from cnf.config import (IMAGE_SIZE, IMAGE_CHANNEL, BATCH_SIZE, EPOCH_NUM,
                         LEARNING_RATE, DECAY, CLASS_NUM)
 
@@ -15,12 +16,7 @@ def add_fc_layer(model):
 
     top_model = Sequential()
     top_model.add(model)
-    top_model.add(GlobalAveragePooling2D())
-    top_model.add(Flatten())
-    top_model.add(Dense(256, activation='relu'))
-    top_model.add(Dropout(0.5))
-    top_model.add(Dense(128, activation='relu'))
-    top_model.add(Dropout(0.5))
+    top_model.add(Dense(512, activation='relu', input_dim=4 * 4 * 512))
     top_model.add(Dense(CLASS_NUM, activation='softmax'))
 
     return top_model
@@ -39,6 +35,12 @@ class Models:
         vgg16_model = VGG16(weights='imagenet', include_top=False,
                             input_shape=(self.image_size, self.image_size, IMAGE_CHANNEL))
         return add_fc_layer(vgg16_model)
+
+    @property
+    def __build_vgg19(self):
+        vgg19_model = VGG19(weights='imagenet', include_top=False,
+                            input_shape=(self.image_size, self.image_size, IMAGE_CHANNEL))
+        return add_fc_layer(vgg19_model)
 
     @property
     def __build_xception(self):

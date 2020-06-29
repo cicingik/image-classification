@@ -41,12 +41,12 @@ class DataLoader:
     @property
     def __generate_data(self):
         datagen = ImageDataGenerator(rescale=1. / 255.,
-            vertical_flip=True,
-            horizontal_flip = True,
-            rotation_range=90,
-            shear_range = 0.5,
-            zoom_range = 0.5,
-            validation_split=TEST_SIZE)
+                                     vertical_flip=True,
+                                     horizontal_flip=True,
+                                     rotation_range=90,
+                                     shear_range=0.5,
+                                     zoom_range=0.5,
+                                     validation_split=TEST_SIZE)
         return datagen
 
     @property
@@ -69,7 +69,7 @@ class DataLoader:
 
     @property
     def __test_set(self):
-        datagen = ImageDataGenerator(rescale=1. / 255., validation_split=TEST_SIZE)
+        datagen = ImageDataGenerator(rescale=1. / 255.)
         test_generator = datagen.flow_from_dataframe(
             dataframe=self.df_data_test,
             directory=TEST_DIR,
