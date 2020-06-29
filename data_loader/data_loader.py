@@ -38,9 +38,7 @@ class DataLoader:
     @property
     def __open_test_data(self):
         data = pd.read_csv(TEST_FILE, delimiter=',')
-        data['category'] = data.apply(lambda row:
-                                      '0' + str(row.category) if len(str(row.category)) < 2 else str(row.category),
-                                      axis=1)
+        data['category'] = data.category.apply(lambda row: '0' + str(int(row)) if int(row) < 10 else str(row))
         data = shuffle(data)
         return data
 
