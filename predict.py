@@ -49,7 +49,7 @@ def main(filemodel):
     df['file_path'] = df.apply(lambda x: os.path.join(TEST_DIR, x.filename), axis=1)
     df['category'] = df.apply(lambda x: predict(x.file_path, model), axis=1)
     dk = df[['filename', 'category']]
-    dk.to_csv('predict.csv', mode='a', header=True, index=False, sep=',')
+    dk.to_csv(f'{filemodel}-predict.csv', mode='a', header=True, index=False, sep=',')
     print(dk)
 
 
