@@ -27,26 +27,29 @@ def add_fc_layer(model):
 
 
 class Models:
-    def __init__(self, training_set,  validation_set, model_type: str, image_size):
+    def __init__(self, training_set, validation_set, model_type, image_size, saved_model=None):
         self.model_type = model_type
         self.image_size = image_size
         self.train_set = training_set
         self.validation_set = validation_set
-        self.model = self.build_model()
+        self.model = self.build_model() if saved_model is None else saved_model
 
     @property
     def __build_vgg16(self):
-        vgg16_model = VGG16(weights='imagenet', include_top=False, input_shape=(self.image_size, self.image_size, IMAGE_CHANNEL))
+        vgg16_model = VGG16(weights='imagenet', include_top=False,
+                            input_shape=(self.image_size, self.image_size, IMAGE_CHANNEL))
         return add_fc_layer(vgg16_model)
 
     @property
     def __build_xception(self):
-        xception_model = Xception(weights='imagenet', include_top=False, input_shape=(self.image_size, self.image_size, IMAGE_CHANNEL))
+        xception_model = Xception(weights='imagenet', include_top=False,
+                                  input_shape=(self.image_size, self.image_size, IMAGE_CHANNEL))
         return add_fc_layer(xception_model)
 
     @property
     def __build_inceptionresnetv2(self):
-        inceptionresnetv2_model = InceptionResNetV2(weights='imagenet', include_top=False, input_shape=(self.image_size, self.image_size, IMAGE_CHANNEL))
+        inceptionresnetv2_model = InceptionResNetV2(weights='imagenet', include_top=False,
+                                                    input_shape=(self.image_size, self.image_size, IMAGE_CHANNEL))
         return add_fc_layer(inceptionresnetv2_model)
 
     def build_model(self):
@@ -77,7 +80,7 @@ class Models:
             save_best_only=True)
 
         self.model.fit(
-            x = self.train_set,
+            x=self.train_set,
             steps_per_epoch=self.train_set.n // BATCH_SIZE,
             epochs=EPOCH_NUM,
             workers=6,

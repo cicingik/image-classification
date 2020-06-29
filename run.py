@@ -15,9 +15,9 @@ def image_size(model_type):
     else:
         raise Exception('Invalid model name')
 
-def main(model):
+def main(model, savedmodel):
     data = DataLoader(image_size(model))
-    model = Models(data.train_set, data.valuation_set, model, image_size(model))
+    model = Models(data.train_set, data.valuation_set, model, image_size(model), savedmodel)
     model.train
 
 
@@ -29,4 +29,4 @@ if __name__ == '__main__':
         p.print_help()
         sys.exit(2)
 
-    main(args.model)
+    main(args.model, args.savedmodel)
