@@ -10,17 +10,15 @@ from cnf.config import (IMAGE_CHANNEL, BATCH_SIZE, EPOCH_NUM,
 
 
 def add_fc_layer(model):
-    for layer in model.layers[:len(model.layers) // 2]:
-        layer.trainable = False
+    # for layer in model.layers[:len(model.layers) // 2]:
+    model.trainable = False
 
     top_model = Sequential()
     top_model.add(model)
     top_model.add(GlobalAveragePooling2D())
     top_model.add(Flatten())
-    top_model.add(Dense(256, activation='relu'))
-    top_model.add(Dropout(0.5))
     top_model.add(Dense(128, activation='relu'))
-    top_model.add(Dropout(0.5))
+    top_model.add(Dropout(0.1))
     top_model.add(Dense(CLASS_NUM, activation='softmax'))
 
     return top_model
