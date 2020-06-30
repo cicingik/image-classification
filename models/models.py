@@ -6,7 +6,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.applications import Xception, InceptionResNetV2
 from tensorflow.keras.applications.vgg16 import VGG16
 from cnf.config import (IMAGE_CHANNEL, BATCH_SIZE, EPOCH_NUM,
-                        LEARNING_RATE, DECAY, CLASS_NUM)
+                        LEARNING_RATE, DECAY, CLASS_NUM, MODEL_DIR)
 
 
 def add_fc_layer(model):
@@ -68,7 +68,7 @@ class Models:
 
         # reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=2)
         model_checkpoint_callback = ModelCheckpoint(
-            filepath='/content/drive/My Drive/sopikodelig/{epoch:02d}-{val_accuracy:.4f}.hdf5',
+            filepath='save_models/{epoch:02d}-{val_accuracy:.4f}.hdf5',
             save_weights_only=False,
             monitor='val_accuracy',
             mode='max',
@@ -78,7 +78,7 @@ class Models:
             x=self.train_set,
             steps_per_epoch=self.train_set.n // BATCH_SIZE,
             epochs=EPOCH_NUM,
-            workers=6,
+            workers=1,
             callbacks=[model_checkpoint_callback],
             validation_data=self.validation_set,
             validation_steps=self.validation_set.n // BATCH_SIZE)
