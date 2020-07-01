@@ -8,9 +8,7 @@ import sys
 def image_size(model_type):
     if model_type == 'vgg16':
         return 224
-    elif model_type == 'xception':
-        return 299
-    elif model_type == 'inceptionresnetv2':
+    elif model_type == 'xception' or model_type == 'inceptionresnetv2' or model_type == 'efficientnetb6' or model_type == 'efficientnetb7' or model_type == 'efficientnetl2':
         return 299
     else:
         raise Exception('Invalid model name')

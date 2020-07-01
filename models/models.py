@@ -2,20 +2,18 @@
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Flatten, Dense, Dropout, GlobalAveragePooling2D
 from tensorflow.keras import optimizers
-from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, TensorBoard
 from tensorflow.keras.applications import Xception, InceptionResNetV2
+from efficientnet.tfkeras import EfficientNetB6, EfficientNetB7, EfficientNetL2
 from tensorflow.keras.applications.vgg16 import VGG16
 from cnf.config import (IMAGE_CHANNEL, BATCH_SIZE, EPOCH_NUM,
                         LEARNING_RATE, DECAY, CLASS_NUM, MODEL_DIR)
+import datetime
 
 
 def add_fc_layer(model):
     top_model = Sequential()
     top_model.add(model)
-    top_model.add(GlobalAveragePooling2D())
-    # top_model.add(Flatten())
-    # top_model.add(Dense(128, activation='relu'))
-    # top_model.add(Dropout(0.5))
     top_model.add(Dense(CLASS_NUM, activation='softmax'))
 
     return top_model
@@ -37,15 +35,33 @@ class Models:
 
     @property
     def __build_xception(self):
-        xception_model = Xception(weights='imagenet', include_top=False,
+        xception_model = Xception(weights='imagenet', include_top=False, pooling='avg',
                                   input_shape=(self.image_size, self.image_size, IMAGE_CHANNEL))
         return add_fc_layer(xception_model)
 
     @property
     def __build_inceptionresnetv2(self):
-        inceptionresnetv2_model = InceptionResNetV2(weights='imagenet', include_top=False,
+        inceptionresnetv2_model = InceptionResNetV2(weights='imagenet', include_top=False, pooling='avg',
                                                     input_shape=(self.image_size, self.image_size, IMAGE_CHANNEL))
         return add_fc_layer(inceptionresnetv2_model)
+
+    @property
+    def __build_efficientnetb6(self):
+        efficientnetb6_model = EfficientNetB6(weights='imagenet', include_top=False, pooling='avg',
+                                              input_shape=(self.image_size, self.image_size, IMAGE_CHANNEL))
+        return add_fc_layer(efficientnetb6_model)
+
+    @property
+    def __build_efficientnetb7(self):
+        efficientnetb7_model = EfficientNetB7(weights='imagenet', include_top=False, pooling='avg',
+                                                    input_shape=(self.image_size, self.image_size, IMAGE_CHANNEL))
+        return add_fc_layer(efficientnetb7_model)
+
+    @property
+    def __build_efficientnetl2(self):
+        efficientnetl2_model = EfficientNetL2(weights='imagenet', include_top=False, pooling='avg',
+                                              input_shape=(self.image_size, self.image_size, IMAGE_CHANNEL))
+        return add_fc_layer(efficientnetl2_model)
 
     def build_model(self):
         if self.model_type == 'vgg16':
@@ -54,6 +70,12 @@ class Models:
             model = self.__build_xception
         elif self.model_type == 'inceptionresnetv2':
             model = self.__build_inceptionresnetv2
+        elif self.model_type == 'efficientnetb6':
+            model = self.__build_efficientnetb6
+        elif self.model_type == 'efficientnetb7':
+            model = self.__build_efficientnetb7
+        elif self.model_type == 'efficientnetl2':
+            model = self.__build_efficientnetl2
         else:
             raise Exception('Invalid model name')
 
@@ -66,7 +88,11 @@ class Models:
             optimizer=optimizers.Adam(lr=LEARNING_RATE),
             metrics=['accuracy'])
 
-        # reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=2)
+        reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=2)
+
+        log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
+
         model_checkpoint_callback = ModelCheckpoint(
             filepath='save_models/{epoch:02d}-{val_accuracy:.4f}.hdf5',
             save_weights_only=False,
@@ -76,11 +102,11 @@ class Models:
 
         self.model.fit(
             x=self.train_set,
-            steps_per_epoch=self.train_set.n // BATCH_SIZE,
+            # steps_per_epoch=self.train_set.n // BATCH_SIZE,
             epochs=EPOCH_NUM,
             workers=1,
-            callbacks=[model_checkpoint_callback],
-            validation_data=self.validation_set,
-            validation_steps=self.validation_set.n // BATCH_SIZE)
+            callbacks=[model_checkpoint_callback, reduce_lr, tensorboard_callback],
+            validation_data=self.validation_set)
+            # validation_steps=self.validation_set.n // BATCH_SIZE)
 
         return

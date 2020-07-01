@@ -134,3 +134,4 @@ dmypy.json
 .idea/
 save_models
 .vscode/
+logs/
