@@ -94,7 +94,7 @@ class Models:
         tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
 
         model_checkpoint_callback = ModelCheckpoint(
-            filepath='save_models/{epoch:02d}-{val_accuracy:.4f}.hdf5',
+            filepath='/content/drive/My Drive/sopikodelig/{epoch:02d}-{val_accuracy:.4f}.hdf5',
             save_weights_only=False,
             monitor='val_accuracy',
             mode='max',
